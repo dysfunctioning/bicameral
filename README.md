@@ -1,4 +1,5 @@
 # Bicameral
+_having, consisting of, or based on two ~~legislative~~ mental chambers_
 
 ## Project info
 

@@ -31,7 +31,7 @@ export default function TextEditor({ text, setText }: TextEditorProps) {
     }));
   };
 
-  // Function to determine current paragraph based on cursor position
+  // Improved function to determine current paragraph based on cursor position
   const updateCurrentParagraph = () => {
     if (!textareaRef.current) return;
     
@@ -42,10 +42,10 @@ export default function TextEditor({ text, setText }: TextEditorProps) {
     setCurrentParagraphIndex(paragraphs.length - 1);
   };
 
-  // Effect to update paragraph detection when text changes
+  // Update paragraph detection on component mount and when text changes
   useEffect(() => {
     updateCurrentParagraph();
-  }, [text]);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
@@ -84,6 +84,7 @@ export default function TextEditor({ text, setText }: TextEditorProps) {
           onChange={handleChange}
           onKeyUp={handleKeyUp}
           onClick={handleClick}
+          onSelect={updateCurrentParagraph} // Added onSelect event handler
           placeholder="Start typing your content here..."
           style={{ 
             fontFamily: fontFamily === 'sans' ? 'sans-serif' : fontFamily === 'serif' ? 'serif' : 'monospace'

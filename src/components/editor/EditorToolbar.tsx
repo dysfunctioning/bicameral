@@ -40,6 +40,7 @@ export default function EditorToolbar({
           size="icon"
           className={`h-8 w-8 ${currentAlignment === 'left' ? 'bg-muted' : ''}`}
           onClick={() => onAlignChange('left')}
+          title="Align left"
         >
           <AlignLeft className="h-4 w-4" />
         </Button>
@@ -48,6 +49,7 @@ export default function EditorToolbar({
           size="icon"
           className={`h-8 w-8 ${currentAlignment === 'center' ? 'bg-muted' : ''}`}
           onClick={() => onAlignChange('center')}
+          title="Align center"
         >
           <AlignCenter className="h-4 w-4" />
         </Button>
@@ -56,6 +58,7 @@ export default function EditorToolbar({
           size="icon"
           className={`h-8 w-8 ${currentAlignment === 'right' ? 'bg-muted' : ''}`}
           onClick={() => onAlignChange('right')}
+          title="Align right"
         >
           <AlignRight className="h-4 w-4" />
         </Button>
@@ -64,6 +67,7 @@ export default function EditorToolbar({
           size="icon"
           className={`h-8 w-8 ${currentAlignment === 'justify' ? 'bg-muted' : ''}`}
           onClick={() => onAlignChange('justify')}
+          title="Justify"
         >
           <AlignJustify className="h-4 w-4" />
         </Button>

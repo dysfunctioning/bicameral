@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { 
   AlignLeft, 
   AlignCenter, 
@@ -22,13 +22,11 @@ interface TextEditorProps {
 }
 
 export default function TextEditor({ text, setText }: TextEditorProps) {
-  const [textAlign, setTextAlign] = useState<string>("left");
   const [fontSize, setFontSize] = useState<string>("medium");
   const [fontFamily, setFontFamily] = useState<string>("sans");
-
-  const handleAlignChange = (alignment: string) => {
-    setTextAlign(alignment);
-  };
+  const [paragraphAlignments, setParagraphAlignments] = useState<Record<number, string>>({});
+  const [currentParagraphIndex, setCurrentParagraphIndex] = useState<number>(0);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleFontSizeChange = (size: string) => {
     setFontSize(size);
@@ -36,6 +34,13 @@ export default function TextEditor({ text, setText }: TextEditorProps) {
 
   const handleFontFamilyChange = (font: string) => {
     setFontFamily(font);
+  };
+  
+  const handleAlignChange = (alignment: string) => {
+    setParagraphAlignments(prev => ({
+      ...prev,
+      [currentParagraphIndex]: alignment
+    }));
   };
 
   const fontSizeClasses = {
@@ -51,6 +56,61 @@ export default function TextEditor({ text, setText }: TextEditorProps) {
     mono: "font-mono"
   };
 
+  // Function to determine current paragraph based on cursor position
+  const updateCurrentParagraph = () => {
+    if (!textareaRef.current) return;
+    
+    const cursorPosition = textareaRef.current.selectionStart;
+    const textBeforeCursor = text.substring(0, cursorPosition);
+    const paragraphs = textBeforeCursor.split('\n');
+    
+    setCurrentParagraphIndex(paragraphs.length - 1);
+  };
+
+  // Effect to update paragraph detection when text changes
+  useEffect(() => {
+    updateCurrentParagraph();
+  }, [text]);
+
+  // Render paragraphs with their specific alignments
+  const renderParagraphs = () => {
+    if (!text) return null;
+    
+    const paragraphs = text.split('\n');
+    
+    return paragraphs.map((paragraph, index) => {
+      const alignment = paragraphAlignments[index] || 'left';
+      
+      return (
+        <div 
+          key={index} 
+          className={`mb-2 text-${alignment}`}
+          style={{ textAlign: alignment as any }}
+        >
+          {paragraph || <br />}
+        </div>
+      );
+    });
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setText(e.target.value);
+    updateCurrentParagraph();
+  };
+
+  const handleKeyUp = () => {
+    updateCurrentParagraph();
+  };
+
+  const handleClick = () => {
+    updateCurrentParagraph();
+  };
+
+  // Get current alignment for the toolbar
+  const getCurrentAlignment = () => {
+    return paragraphAlignments[currentParagraphIndex] || 'left';
+  };
+
   return (
     <div className="h-full flex flex-col bg-white">
       <div className="border-b p-2 flex flex-wrap items-center gap-2">
@@ -58,7 +118,7 @@ export default function TextEditor({ text, setText }: TextEditorProps) {
           <Button 
             variant="ghost" 
             size="icon"
-            className={`h-8 w-8 ${textAlign === 'left' ? 'bg-muted' : ''}`}
+            className={`h-8 w-8 ${getCurrentAlignment() === 'left' ? 'bg-muted' : ''}`}
             onClick={() => handleAlignChange('left')}
           >
             <AlignLeft className="h-4 w-4" />
@@ -66,7 +126,7 @@ export default function TextEditor({ text, setText }: TextEditorProps) {
           <Button 
             variant="ghost" 
             size="icon"
-            className={`h-8 w-8 ${textAlign === 'center' ? 'bg-muted' : ''}`}
+            className={`h-8 w-8 ${getCurrentAlignment() === 'center' ? 'bg-muted' : ''}`}
             onClick={() => handleAlignChange('center')}
           >
             <AlignCenter className="h-4 w-4" />
@@ -74,7 +134,7 @@ export default function TextEditor({ text, setText }: TextEditorProps) {
           <Button 
             variant="ghost" 
             size="icon"
-            className={`h-8 w-8 ${textAlign === 'right' ? 'bg-muted' : ''}`}
+            className={`h-8 w-8 ${getCurrentAlignment() === 'right' ? 'bg-muted' : ''}`}
             onClick={() => handleAlignChange('right')}
           >
             <AlignRight className="h-4 w-4" />
@@ -82,7 +142,7 @@ export default function TextEditor({ text, setText }: TextEditorProps) {
           <Button 
             variant="ghost" 
             size="icon"
-            className={`h-8 w-8 ${textAlign === 'justify' ? 'bg-muted' : ''}`}
+            className={`h-8 w-8 ${getCurrentAlignment() === 'justify' ? 'bg-muted' : ''}`}
             onClick={() => handleAlignChange('justify')}
           >
             <AlignJustify className="h-4 w-4" />
@@ -118,13 +178,39 @@ export default function TextEditor({ text, setText }: TextEditorProps) {
         </div>
       </div>
 
-      <div className={`flex-1 p-4 ${fontSizeClasses[fontSize as keyof typeof fontSizeClasses]} ${fontFamilyClasses[fontFamily as keyof typeof fontFamilyClasses]} text-${textAlign}`}>
+      <div className={`flex-1 p-4 ${fontSizeClasses[fontSize as keyof typeof fontSizeClasses]} ${fontFamilyClasses[fontFamily as keyof typeof fontFamilyClasses]}`}>
+        <div className="hidden">
+          {renderParagraphs()}
+        </div>
         <textarea
-          className={`w-full h-full focus:outline-none resize-none text-${textAlign}`}
+          ref={textareaRef}
+          className="w-full h-full focus:outline-none resize-none"
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={handleChange}
+          onKeyUp={handleKeyUp}
+          onClick={handleClick}
           placeholder="Start typing your content here..."
+          style={{ 
+            fontFamily: fontFamily === 'sans' ? 'sans-serif' : fontFamily === 'serif' ? 'serif' : 'monospace'
+          }}
         />
+        <div className="mt-4 p-2 border rounded-md">
+          <h3 className="text-sm font-semibold mb-2">Preview:</h3>
+          <div className={`${fontSizeClasses[fontSize as keyof typeof fontSizeClasses]} ${fontFamilyClasses[fontFamily as keyof typeof fontFamilyClasses]}`}>
+            {text.split('\n').map((paragraph, index) => {
+              const alignment = paragraphAlignments[index] || 'left';
+              return (
+                <div 
+                  key={index} 
+                  className={`mb-2`}
+                  style={{ textAlign: alignment as any }}
+                >
+                  {paragraph || <br />}
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,10 +1,11 @@
-# Welcome to your Lovable project
+# Bicameral
 
 ## Project info
 
-* Name: **TextFlow**
+* Name: **Bicameral**
 * Author: **Chris "dysfunctioning" Gold & Lovable**
 * Key Concept: **Hemispheric Specialization** (https://en.wikipedia.org/wiki/Lateralization_of_brain_function)
+* Inspo: **IdeaFlow & Westworld**
 * Overview: I wanted to create a "Hemispheric Specialization" Text Editor that can dynamically switch between _analytical_ "left-brain" thought and _spacially-aware/creative_ "right-brain" thought.  I want AI to supplement _but not replace_ original thought from the user and, in the future, enable the ability for multiple users to collaborate on projects. Whether you are a visual, auditory, or kinesthetic learner, TextFlow has got what you need and takes both "Microsoft Word" style text editors and prompt-based AI assistants to the next level.
 * What's next? I'd like to add dynamic, multi-user collaboration, AI autofill recommendations, enhance the text editor to actually work, whiteboard "free draw" mode, and add an "AI draw" feature to whiteboard mode to create an image behind the thought bubble depicting what the thought bubble contains. Much more consideration also needs to be made on the conversion between the text editor and whiteboard modes.
 

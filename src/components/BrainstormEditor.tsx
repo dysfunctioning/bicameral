@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Toggle } from "@/components/ui/toggle";
 import { Separator } from "@/components/ui/separator";
@@ -15,6 +14,8 @@ import { Change } from "@/components/ChangeTrackingPane";
 export default function BrainstormEditor() {
   const [mode, setMode] = useState<"normal" | "whiteboard">("normal");
   const [text, setText] = useState("");
+  const [fontSize, setFontSize] = useState<string>("medium");
+  const [fontFamily, setFontFamily] = useState<string>("sans");
   const [nodes, setNodes] = useState<any[]>([]);
   const [edges, setEdges] = useState<any[]>([]);
   const [showChangeTracking, setShowChangeTracking] = useState(false);
@@ -29,10 +30,11 @@ export default function BrainstormEditor() {
     if (newMode === mode) return;
     
     if (newMode === "whiteboard") {
-      // Convert text to whiteboard nodes and edges
-      const { nodes: newNodes, edges: newEdges } = convertToWhiteboard(text);
+      // Convert text to whiteboard nodes and edges with font styling
+      const { nodes: newNodes, edges: newEdges } = convertToWhiteboard(text, fontSize, fontFamily);
       setNodes(newNodes);
       setEdges(newEdges);
+      toast.info("Whiteboard mode: node colors reflect content type!");
     } else {
       // Convert whiteboard to text
       const newText = convertToText(nodes, edges);
@@ -149,6 +151,11 @@ export default function BrainstormEditor() {
     toast.info("Comment added");
   };
 
+  const handleFontChange = (size: string, family: string) => {
+    setFontSize(size);
+    setFontFamily(family);
+  };
+
   return (
     <div className="h-full flex flex-col gap-4">
       <div className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
@@ -188,7 +195,13 @@ export default function BrainstormEditor() {
           {mode === "normal" ? (
             <>
               <div className={`flex-1 ${showChangeTracking ? 'border-r' : ''}`}>
-                <TextEditor text={text} setText={handleTextChange} />
+                <TextEditor 
+                  text={text} 
+                  setText={handleTextChange} 
+                  onFontChange={handleFontChange}
+                  initialFontSize={fontSize}
+                  initialFontFamily={fontFamily}
+                />
               </div>
               {showChangeTracking && (
                 <div className="w-1/3 min-w-[300px]">

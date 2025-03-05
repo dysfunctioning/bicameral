@@ -1,5 +1,5 @@
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import EditorToolbar from "./editor/EditorToolbar";
 import TextPreview from "./editor/TextPreview";
 import { fontSizeClasses, fontFamilyClasses } from "./editor/editorUtils";
@@ -8,14 +8,30 @@ import ContentEditable from "./editor/ContentEditable";
 interface TextEditorProps {
   text: string;
   setText: (text: string) => void;
+  onFontChange?: (fontSize: string, fontFamily: string) => void;
+  initialFontSize?: string;
+  initialFontFamily?: string;
 }
 
-export default function TextEditor({ text, setText }: TextEditorProps) {
-  const [fontSize, setFontSize] = useState<string>("medium");
-  const [fontFamily, setFontFamily] = useState<string>("sans");
+export default function TextEditor({ 
+  text, 
+  setText, 
+  onFontChange,
+  initialFontSize = "medium",
+  initialFontFamily = "sans"
+}: TextEditorProps) {
+  const [fontSize, setFontSize] = useState<string>(initialFontSize);
+  const [fontFamily, setFontFamily] = useState<string>(initialFontFamily);
   const [paragraphAlignments, setParagraphAlignments] = useState<Record<number, string>>({});
   const [currentParagraphIndex, setCurrentParagraphIndex] = useState<number>(0);
   const editableRef = useRef<HTMLDivElement>(null);
+  
+  // Update parent component when font settings change
+  useEffect(() => {
+    if (onFontChange) {
+      onFontChange(fontSize, fontFamily);
+    }
+  }, [fontSize, fontFamily, onFontChange]);
   
   const handleFontSizeChange = (size: string) => {
     setFontSize(size);

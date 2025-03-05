@@ -20,6 +20,7 @@ export default function BrainstormEditor() {
   const [showChangeTracking, setShowChangeTracking] = useState(false);
   const [changes, setChanges] = useState<Change[]>([]);
   const [lastText, setLastText] = useState("");
+  const [textHistory, setTextHistory] = useState<{id: string, text: string}[]>([]);
 
   // For demo purposes, we'll use a fake user
   const currentUser = "Current User";
@@ -51,14 +52,19 @@ export default function BrainstormEditor() {
       const timeoutId = setTimeout(() => {
         const diff = findTextDifference(lastText, newText);
         if (diff) {
+          const changeId = uuidv4();
           const newChange: Change = {
-            id: uuidv4(),
+            id: changeId,
             text: diff,
             author: currentUser,
             timestamp: new Date(),
             comment: "",
             status: "pending"
           };
+          
+          // Store the text state before this change
+          setTextHistory(prev => [...prev, {id: changeId, text: lastText}]);
+          
           setChanges(prev => [newChange, ...prev]);
           setLastText(newText);
         }
@@ -106,16 +112,32 @@ export default function BrainstormEditor() {
         change.id === id ? { ...change, status: "accepted" } : change
       )
     );
+    
+    // Remove this change from history since it's accepted
+    setTextHistory(prev => prev.filter(item => item.id !== id));
+    
     toast.success("Change accepted");
   };
 
   const handleRejectChange = (id: string) => {
+    // Find the previous text state for this change
+    const previousState = textHistory.find(item => item.id === id);
+    
+    if (previousState) {
+      // Restore the text to its previous state
+      setText(previousState.text);
+      setLastText(previousState.text);
+      toast.success("Change rejected and undone");
+    }
+    
     setChanges(prev => 
       prev.map(change => 
         change.id === id ? { ...change, status: "rejected" } : change
       )
     );
-    toast.error("Change rejected");
+    
+    // Remove this change from history
+    setTextHistory(prev => prev.filter(item => item.id !== id));
   };
 
   const handleAddComment = (id: string, comment: string) => {

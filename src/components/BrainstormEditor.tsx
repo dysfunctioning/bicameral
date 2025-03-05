@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Toggle } from "@/components/ui/toggle";
 import { Separator } from "@/components/ui/separator";
@@ -34,7 +35,7 @@ export default function BrainstormEditor() {
       const { nodes: newNodes, edges: newEdges } = convertToWhiteboard(text, fontSize, fontFamily);
       setNodes(newNodes);
       setEdges(newEdges);
-      toast.info("Whiteboard mode: node colors reflect content type!");
+      toast.success("Whiteboard mode: node colors reflect content type!");
     } else {
       // Convert whiteboard to text
       const newText = convertToText(nodes, edges);

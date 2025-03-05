@@ -1,4 +1,3 @@
-
 // Utility functions to convert between text and whiteboard formats
 
 interface Node {
@@ -30,6 +29,11 @@ const contentColors = {
 
 // Function to analyze text content and infer style properties
 function analyzeContent(text: string) {
+  // Safety check
+  if (!text || typeof text !== 'string') {
+    return { color: contentColors.default };
+  }
+
   // Convert to lowercase for easier comparison
   const lowerText = text.toLowerCase();
   
@@ -78,62 +82,74 @@ function analyzeContent(text: string) {
 export function convertToWhiteboard(text: string, fontSize?: string, fontFamily?: string): { nodes: Node[], edges: Edge[] } {
   // First check if the text is empty or undefined
   if (!text || text.trim() === '') {
+    console.warn('No text provided for whiteboard conversion');
     return { nodes: [], edges: [] };
   }
 
   // Split into paragraphs and filter out empty lines
-  const lines = text.split('\n').filter(line => line.trim() !== '');
+  const lines = text.split('\n')
+    .map(line => line.trim())
+    .filter(line => line !== '');
   
   // If there are no non-empty lines, return empty arrays
   if (lines.length === 0) {
+    console.warn('No non-empty lines found in the text');
     return { nodes: [], edges: [] };
   }
   
   const nodes: Node[] = [];
   const edges: Edge[] = [];
   
-  // Create nodes in a circular layout
+  // Adaptive circular layout based on number of lines
   const centerX = 400;
   const centerY = 300;
-  const radius = Math.min(200, Math.max(150, lines.length * 15));
+  const maxRadius = 250;
+  const minRadius = 150;
+  
+  // Calculate radius dynamically
+  const radius = Math.min(maxRadius, Math.max(minRadius, lines.length * 20));
   
   lines.forEach((line, index) => {
+    // Prevent potential infinite loop or NaN
+    const safeIndex = Math.max(0, index);
+    
     // Position nodes in a circular layout
-    const angle = (index / lines.length) * Math.PI * 2;
+    const angle = (safeIndex / lines.length) * Math.PI * 2;
     const x = centerX + radius * Math.cos(angle);
     const y = centerY + radius * Math.sin(angle);
     
-    // Skip empty lines
-    if (line.trim() === '') return;
-    
     // Analyze content for styling
-    const contentStyle = analyzeContent(line.trim());
+    const contentStyle = analyzeContent(line);
     
     nodes.push({
-      id: `node_${index + 1}`,
+      id: `node_${safeIndex + 1}`,
       type: 'custom',
       position: { x, y },
       data: { 
-        label: line.trim(),
+        label: line,
         color: contentStyle.color,
-        fontSize,
-        fontFamily
+        fontSize: fontSize || 'medium',
+        fontFamily: fontFamily || 'sans-serif'
       }
     });
     
     // Connect to previous node if not the first one
-    if (index > 0) {
+    if (safeIndex > 0) {
       edges.push({
-        id: `edge_${index}`,
-        source: `node_${index}`,
-        target: `node_${index + 1}`
+        id: `edge_${safeIndex}`,
+        source: `node_${safeIndex}`,
+        target: `node_${safeIndex + 1}`
       });
     }
   });
   
-  // Return empty arrays if no nodes were created
-  if (nodes.length === 0) {
-    console.warn('No nodes were created from the text');
+  // Add a closing edge to create a loop if more than 2 nodes
+  if (nodes.length > 2) {
+    edges.push({
+      id: `edge_loop`,
+      source: `node_${nodes.length}`,
+      target: 'node_1'
+    });
   }
   
   return { nodes, edges };
@@ -145,8 +161,15 @@ export function convertToText(nodes: Node[], edges: Edge[]): string {
     return '';
   }
   
+  // Sort nodes by their position to maintain original order
+  const sortedNodes = [...nodes].sort((a, b) => {
+    // First sort by Y position, then by X if Y is very close
+    const yDiff = a.position.y - b.position.y;
+    return yDiff !== 0 ? yDiff : a.position.x - b.position.x;
+  });
+  
   // Simple approach: just extract text from each node
-  return nodes
+  return sortedNodes
     .map(node => (node.data && node.data.label) ? node.data.label : '')
     .filter(label => label.trim() !== '')
     .join('\n');

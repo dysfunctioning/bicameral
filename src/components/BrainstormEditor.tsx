@@ -33,13 +33,36 @@ export default function BrainstormEditor() {
     if (newMode === "whiteboard") {
       // Convert text to whiteboard nodes and edges with font styling
       const { nodes: newNodes, edges: newEdges } = convertToWhiteboard(text, fontSize, fontFamily);
-      setNodes(newNodes);
-      setEdges(newEdges);
-      toast.success("Whiteboard mode: node colors reflect content type!");
+      
+      // Debug the conversion
+      console.log("Converting to whiteboard mode:");
+      console.log("Text input:", text);
+      console.log("Generated nodes:", newNodes);
+      console.log("Generated edges:", newEdges);
+      
+      // Only set if we actually have nodes (prevents losing data)
+      if (newNodes.length > 0) {
+        setNodes(newNodes);
+        setEdges(newEdges);
+        toast.success("Whiteboard mode: node colors reflect content type!");
+      } else {
+        // If no nodes were created, show an error
+        toast.error("No content to display in whiteboard. Please add some text first.");
+        return; // Don't change mode
+      }
     } else {
       // Convert whiteboard to text
       const newText = convertToText(nodes, edges);
-      setText(newText);
+      
+      // Debug the conversion
+      console.log("Converting to normal mode:");
+      console.log("Nodes input:", nodes);
+      console.log("Generated text:", newText);
+      
+      // Only set if we actually have text (prevents losing data)
+      if (newText.trim() !== '') {
+        setText(newText);
+      }
     }
     
     setMode(newMode);

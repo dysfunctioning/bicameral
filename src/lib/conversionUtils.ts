@@ -76,7 +76,19 @@ function analyzeContent(text: string) {
 }
 
 export function convertToWhiteboard(text: string, fontSize?: string, fontFamily?: string): { nodes: Node[], edges: Edge[] } {
+  // First check if the text is empty or undefined
+  if (!text || text.trim() === '') {
+    return { nodes: [], edges: [] };
+  }
+
+  // Split into paragraphs and filter out empty lines
   const lines = text.split('\n').filter(line => line.trim() !== '');
+  
+  // If there are no non-empty lines, return empty arrays
+  if (lines.length === 0) {
+    return { nodes: [], edges: [] };
+  }
+  
   const nodes: Node[] = [];
   const edges: Edge[] = [];
   
@@ -90,6 +102,9 @@ export function convertToWhiteboard(text: string, fontSize?: string, fontFamily?
     const angle = (index / lines.length) * Math.PI * 2;
     const x = centerX + radius * Math.cos(angle);
     const y = centerY + radius * Math.sin(angle);
+    
+    // Skip empty lines
+    if (line.trim() === '') return;
     
     // Analyze content for styling
     const contentStyle = analyzeContent(line.trim());
@@ -116,13 +131,23 @@ export function convertToWhiteboard(text: string, fontSize?: string, fontFamily?
     }
   });
   
+  // Return empty arrays if no nodes were created
+  if (nodes.length === 0) {
+    console.warn('No nodes were created from the text');
+  }
+  
   return { nodes, edges };
 }
 
 export function convertToText(nodes: Node[], edges: Edge[]): string {
-  // Simple approach: just extract text from each node
-  return nodes.map(node => node.data.label).join('\n');
+  // If no nodes, return empty string
+  if (!nodes || nodes.length === 0) {
+    return '';
+  }
   
-  // For a more sophisticated approach, we could use the edges to determine
-  // the hierarchical structure and convert to a proper document structure
+  // Simple approach: just extract text from each node
+  return nodes
+    .map(node => (node.data && node.data.label) ? node.data.label : '')
+    .filter(label => label.trim() !== '')
+    .join('\n');
 }

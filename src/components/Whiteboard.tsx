@@ -1,5 +1,5 @@
 
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -30,6 +30,20 @@ export default function Whiteboard({ nodes: initialNodes, setNodes: setParentNod
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
+  // Update internal state when props change
+  useEffect(() => {
+    if (initialNodes && initialNodes.length > 0) {
+      console.log("Updating whiteboard with new nodes:", initialNodes);
+      setNodes(initialNodes);
+    }
+  }, [initialNodes, setNodes]);
+
+  useEffect(() => {
+    if (initialEdges && initialEdges.length > 0) {
+      setEdges(initialEdges);
+    }
+  }, [initialEdges, setEdges]);
+
   const onConnect = useCallback((params: Connection) => {
     const newEdges = addEdge(params, edges);
     setEdges(newEdges);
@@ -38,12 +52,14 @@ export default function Whiteboard({ nodes: initialNodes, setNodes: setParentNod
 
   const handleNodesChange = (changes: NodeChange[]) => {
     onNodesChange(changes);
-    setParentNodes(nodes);
+    // Sync back to parent after changes are applied
+    setTimeout(() => setParentNodes(nodes), 0);
   };
 
   const handleEdgesChange = (changes: EdgeChange[]) => {
     onEdgesChange(changes);
-    setParentEdges(edges);
+    // Sync back to parent after changes are applied
+    setTimeout(() => setParentEdges(edges), 0);
   };
 
   const onDoubleClick = (event: React.MouseEvent) => {
@@ -61,8 +77,9 @@ export default function Whiteboard({ nodes: initialNodes, setNodes: setParentNod
       data: { label: 'New thought' },
     };
 
-    setNodes([...nodes, newNode]);
-    setParentNodes([...nodes, newNode]);
+    const updatedNodes = [...nodes, newNode];
+    setNodes(updatedNodes);
+    setParentNodes(updatedNodes);
   };
 
   return (

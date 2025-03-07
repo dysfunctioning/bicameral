@@ -7,15 +7,22 @@ export function useModeHandler() {
   const [mode, setMode] = useState<"normal" | "whiteboard">("normal");
   const [nodes, setNodes] = useState<any[]>([]);
   const [edges, setEdges] = useState<any[]>([]);
+  const [paragraphAlignments, setParagraphAlignments] = useState<Record<number, string>>({});
 
   const handleModeChange = (
     newMode: "normal" | "whiteboard", 
     text: string, 
     fontSize: string, 
     fontFamily: string,
-    setText: (text: string) => void
+    setText: (text: string) => void,
+    currentParagraphAlignments?: Record<number, string>
   ) => {
     if (newMode === mode) return;
+    
+    // If switching to whiteboard, save current paragraph alignments
+    if (newMode === "whiteboard" && currentParagraphAlignments) {
+      setParagraphAlignments(currentParagraphAlignments);
+    }
     
     if (newMode === "whiteboard") {
       // Ensure text is not empty
@@ -79,6 +86,7 @@ export function useModeHandler() {
     edges,
     setNodes,
     setEdges,
+    paragraphAlignments,
     handleModeChange
   };
 }

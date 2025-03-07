@@ -11,6 +11,8 @@ interface TextEditorProps {
   onFontChange?: (fontSize: string, fontFamily: string) => void;
   initialFontSize?: string;
   initialFontFamily?: string;
+  initialParagraphAlignments?: Record<number, string>;
+  onAlignmentsUpdate?: (alignments: Record<number, string>) => void;
 }
 
 export default function TextEditor({ 
@@ -18,11 +20,13 @@ export default function TextEditor({
   setText, 
   onFontChange,
   initialFontSize = "medium",
-  initialFontFamily = "sans"
+  initialFontFamily = "sans",
+  initialParagraphAlignments = {},
+  onAlignmentsUpdate
 }: TextEditorProps) {
   const [fontSize, setFontSize] = useState<string>(initialFontSize);
   const [fontFamily, setFontFamily] = useState<string>(initialFontFamily);
-  const [paragraphAlignments, setParagraphAlignments] = useState<Record<number, string>>({});
+  const [paragraphAlignments, setParagraphAlignments] = useState<Record<number, string>>(initialParagraphAlignments);
   const [currentParagraphIndex, setCurrentParagraphIndex] = useState<number>(0);
   const editableRef = useRef<HTMLDivElement>(null);
   
@@ -32,6 +36,18 @@ export default function TextEditor({
       onFontChange(fontSize, fontFamily);
     }
   }, [fontSize, fontFamily, onFontChange]);
+  
+  // Initialize with initial paragraph alignments
+  useEffect(() => {
+    setParagraphAlignments(initialParagraphAlignments);
+  }, [initialParagraphAlignments]);
+  
+  // Notify parent when paragraph alignments change
+  useEffect(() => {
+    if (onAlignmentsUpdate) {
+      onAlignmentsUpdate(paragraphAlignments);
+    }
+  }, [paragraphAlignments, onAlignmentsUpdate]);
   
   const handleFontSizeChange = (size: string) => {
     setFontSize(size);

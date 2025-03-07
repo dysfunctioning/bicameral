@@ -13,6 +13,7 @@ export default function BrainstormEditor() {
   const [fontSize, setFontSize] = useState<string>("medium");
   const [fontFamily, setFontFamily] = useState<string>("sans");
   const [showChangeTracking, setShowChangeTracking] = useState(false);
+  const [paragraphAlignments, setParagraphAlignments] = useState<Record<number, string>>({});
   
   // Mode handling logic
   const { 
@@ -20,7 +21,8 @@ export default function BrainstormEditor() {
     nodes, 
     edges, 
     setNodes, 
-    setEdges, 
+    setEdges,
+    paragraphAlignments: savedAlignments,
     handleModeChange 
   } = useModeHandler();
   
@@ -37,9 +39,19 @@ export default function BrainstormEditor() {
     setText(newText);
   };
 
+  // Handle paragraph alignments update
+  const handleAlignmentsUpdate = (newAlignments: Record<number, string>) => {
+    setParagraphAlignments(newAlignments);
+  };
+
   // Handle mode toggle
   const onModeChange = (newMode: "normal" | "whiteboard") => {
-    handleModeChange(newMode, text, fontSize, fontFamily, setText);
+    handleModeChange(newMode, text, fontSize, fontFamily, setText, paragraphAlignments);
+    
+    // When switching back to normal mode, restore saved paragraph alignments
+    if (newMode === "normal" && Object.keys(savedAlignments).length > 0) {
+      setParagraphAlignments(savedAlignments);
+    }
   };
 
   // Handle change tracking toggle
@@ -97,6 +109,8 @@ export default function BrainstormEditor() {
                   onFontChange={handleFontChange}
                   initialFontSize={fontSize}
                   initialFontFamily={fontFamily}
+                  initialParagraphAlignments={paragraphAlignments}
+                  onAlignmentsUpdate={handleAlignmentsUpdate}
                 />
               </div>
               {showChangeTracking && (
@@ -111,7 +125,12 @@ export default function BrainstormEditor() {
               )}
             </>
           ) : (
-            <Whiteboard nodes={nodes} setNodes={setNodes} edges={edges} setEdges={setEdges} />
+            <Whiteboard 
+              nodes={nodes} 
+              setNodes={setNodes} 
+              edges={edges} 
+              setEdges={setEdges} 
+            />
           )}
         </div>
       </div>

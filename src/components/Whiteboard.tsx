@@ -35,21 +35,23 @@ export default function Whiteboard({ nodes: initialNodes, setNodes: setParentNod
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Initialize with props when they change
+  // Initialize with props only once when they change
   useEffect(() => {
-    if (initialNodes && initialNodes.length > 0) {
+    if (initialNodes && initialNodes.length > 0 && !isInitialized) {
       console.log("Updating whiteboard with new nodes:", initialNodes);
       setNodes(initialNodes);
+      setIsInitialized(true);
     }
-  }, [initialNodes, setNodes]);
+  }, [initialNodes, setNodes, isInitialized]);
 
   useEffect(() => {
-    if (initialEdges && initialEdges.length > 0) {
+    if (initialEdges && initialEdges.length > 0 && !isInitialized) {
       console.log("Updating whiteboard with new edges:", initialEdges);
       setEdges(initialEdges);
     }
-  }, [initialEdges, setEdges]);
+  }, [initialEdges, setEdges, isInitialized]);
 
   const onConnect = useCallback((params: Connection) => {
     const newEdges = addEdge(params, edges);

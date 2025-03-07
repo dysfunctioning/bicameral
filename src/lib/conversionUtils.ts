@@ -101,56 +101,101 @@ export function convertToWhiteboard(text: string, fontSize?: string, fontFamily?
   const nodes: Node[] = [];
   const edges: Edge[] = [];
   
-  // Adaptive circular layout based on number of lines
+  // Adaptive layout based on number of lines
   const centerX = 400;
   const centerY = 300;
-  const maxRadius = 250;
-  const minRadius = 150;
   
-  // Calculate radius dynamically based on number of items
-  const radius = Math.min(maxRadius, Math.max(minRadius, lines.length * 20));
-  
-  lines.forEach((line, index) => {
-    // Prevent potential infinite loop or NaN
-    const safeIndex = Math.max(0, index);
-    
-    // Position nodes in a circular layout
-    const angle = (safeIndex / Math.max(1, lines.length)) * Math.PI * 2;
-    const x = centerX + radius * Math.cos(angle);
-    const y = centerY + radius * Math.sin(angle);
-    
-    // Analyze content for styling
-    const contentStyle = analyzeContent(line);
-    
+  if (lines.length === 1) {
+    // Single node centered
+    const contentStyle = analyzeContent(lines[0]);
     nodes.push({
-      id: `node_${safeIndex + 1}`,
+      id: 'node_1',
       type: 'custom',
-      position: { x, y },
+      position: { x: centerX - 100, y: centerY },
       data: { 
-        label: line,
+        label: lines[0],
         color: contentStyle.color,
         fontSize: fontSize || 'medium',
         fontFamily: fontFamily || 'sans-serif'
       }
     });
+  } else if (lines.length === 2) {
+    // Two nodes side by side
+    const firstStyle = analyzeContent(lines[0]);
+    const secondStyle = analyzeContent(lines[1]);
     
-    // Connect to previous node if not the first one
-    if (safeIndex > 0) {
+    nodes.push({
+      id: 'node_1',
+      type: 'custom',
+      position: { x: centerX - 150, y: centerY },
+      data: { 
+        label: lines[0],
+        color: firstStyle.color,
+        fontSize: fontSize || 'medium',
+        fontFamily: fontFamily || 'sans-serif'
+      }
+    });
+    
+    nodes.push({
+      id: 'node_2',
+      type: 'custom',
+      position: { x: centerX + 150, y: centerY },
+      data: { 
+        label: lines[1],
+        color: secondStyle.color,
+        fontSize: fontSize || 'medium',
+        fontFamily: fontFamily || 'sans-serif'
+      }
+    });
+    
+    // Connect the two nodes
+    edges.push({
+      id: 'edge_1',
+      source: 'node_1',
+      target: 'node_2'
+    });
+  } else {
+    // Multiple nodes in a circular layout
+    const radius = Math.min(250, Math.max(150, lines.length * 20));
+    
+    lines.forEach((line, index) => {
+      const angle = (index / lines.length) * Math.PI * 2;
+      const x = centerX + radius * Math.cos(angle);
+      const y = centerY + radius * Math.sin(angle);
+      
+      const contentStyle = analyzeContent(line);
+      const nodeId = `node_${index + 1}`;
+      
+      nodes.push({
+        id: nodeId,
+        type: 'custom',
+        position: { x, y },
+        data: { 
+          label: line,
+          color: contentStyle.color,
+          fontSize: fontSize || 'medium',
+          fontFamily: fontFamily || 'sans-serif'
+        }
+      });
+      
+      // Connect to previous node
+      if (index > 0) {
+        edges.push({
+          id: `edge_${index}`,
+          source: `node_${index}`,
+          target: nodeId
+        });
+      }
+    });
+    
+    // Close the loop for 3+ nodes
+    if (lines.length > 2) {
       edges.push({
-        id: `edge_${safeIndex}`,
-        source: `node_${safeIndex}`,
-        target: `node_${safeIndex + 1}`
+        id: 'edge_loop',
+        source: `node_${lines.length}`,
+        target: 'node_1'
       });
     }
-  });
-  
-  // Add a closing edge to create a loop if more than 2 nodes
-  if (nodes.length > 2) {
-    edges.push({
-      id: `edge_loop`,
-      source: `node_${nodes.length}`,
-      target: 'node_1'
-    });
   }
   
   console.log('Generated nodes:', nodes.length, 'Generated edges:', edges.length);

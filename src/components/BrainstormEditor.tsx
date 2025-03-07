@@ -46,12 +46,12 @@ export default function BrainstormEditor() {
         console.log("Generated nodes:", result.nodes);
         console.log("Generated edges:", result.edges);
         
-        // Only set if we actually have nodes (prevents losing data)
+        // Only switch mode if we have nodes
         if (result.nodes.length > 0) {
           setNodes(result.nodes);
           setEdges(result.edges);
           setMode(newMode);
-          toast.success("Whiteboard mode: node colors reflect content type!");
+          toast.success("Whiteboard mode enabled - node colors reflect content type");
         } else {
           // If no nodes were created, show an error
           toast.error("Failed to create whiteboard content. Please try again.");
@@ -74,6 +74,7 @@ export default function BrainstormEditor() {
         if (newText.trim() !== '') {
           setText(newText);
           setMode(newMode);
+          toast.success("Normal mode enabled");
         } else {
           toast.error("No content found in whiteboard to convert to text.");
         }
@@ -116,7 +117,6 @@ export default function BrainstormEditor() {
     }
   };
 
-  // Initialize lastText when text changes
   useEffect(() => {
     if (lastText === "" && text !== "") {
       setLastText(text);

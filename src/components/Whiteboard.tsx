@@ -29,14 +29,12 @@ interface WhiteboardProps {
 export default function Whiteboard({ nodes: initialNodes, setNodes: setParentNodes, edges: initialEdges, setEdges: setParentEdges }: WhiteboardProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [initialized, setInitialized] = useState(false);
 
-  // Initialize with props when first rendered or when props change significantly
+  // Initialize with props when they change
   useEffect(() => {
     if (initialNodes && initialNodes.length > 0) {
       console.log("Updating whiteboard with new nodes:", initialNodes);
       setNodes(initialNodes);
-      setInitialized(true);
     }
   }, [initialNodes, setNodes]);
 
@@ -86,7 +84,7 @@ export default function Whiteboard({ nodes: initialNodes, setNodes: setParentNod
   };
 
   return (
-    <div className="h-full bg-gray-50" onDoubleClick={onDoubleClick}>
+    <div className="h-full w-full bg-gray-50" onDoubleClick={onDoubleClick}>
       <ReactFlow
         nodes={nodes}
         edges={edges}

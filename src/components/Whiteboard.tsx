@@ -1,5 +1,5 @@
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -27,19 +27,22 @@ interface WhiteboardProps {
 }
 
 export default function Whiteboard({ nodes: initialNodes, setNodes: setParentNodes, edges: initialEdges, setEdges: setParentEdges }: WhiteboardProps) {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [initialized, setInitialized] = useState(false);
 
-  // Update internal state when props change
+  // Initialize with props when first rendered or when props change significantly
   useEffect(() => {
     if (initialNodes && initialNodes.length > 0) {
       console.log("Updating whiteboard with new nodes:", initialNodes);
       setNodes(initialNodes);
+      setInitialized(true);
     }
   }, [initialNodes, setNodes]);
 
   useEffect(() => {
     if (initialEdges && initialEdges.length > 0) {
+      console.log("Updating whiteboard with new edges:", initialEdges);
       setEdges(initialEdges);
     }
   }, [initialEdges, setEdges]);

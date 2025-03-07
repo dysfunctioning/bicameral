@@ -1,3 +1,4 @@
+
 // Utility functions to convert between text and whiteboard formats
 
 interface Node {
@@ -106,7 +107,7 @@ export function convertToWhiteboard(text: string, fontSize?: string, fontFamily?
   const maxRadius = 250;
   const minRadius = 150;
   
-  // Calculate radius dynamically
+  // Calculate radius dynamically based on number of items
   const radius = Math.min(maxRadius, Math.max(minRadius, lines.length * 20));
   
   lines.forEach((line, index) => {
@@ -114,7 +115,7 @@ export function convertToWhiteboard(text: string, fontSize?: string, fontFamily?
     const safeIndex = Math.max(0, index);
     
     // Position nodes in a circular layout
-    const angle = (safeIndex / lines.length) * Math.PI * 2;
+    const angle = (safeIndex / Math.max(1, lines.length)) * Math.PI * 2;
     const x = centerX + radius * Math.cos(angle);
     const y = centerY + radius * Math.sin(angle);
     
@@ -152,6 +153,7 @@ export function convertToWhiteboard(text: string, fontSize?: string, fontFamily?
     });
   }
   
+  console.log('Generated nodes:', nodes.length, 'Generated edges:', edges.length);
   return { nodes, edges };
 }
 
@@ -165,7 +167,7 @@ export function convertToText(nodes: Node[], edges: Edge[]): string {
   const sortedNodes = [...nodes].sort((a, b) => {
     // First sort by Y position, then by X if Y is very close
     const yDiff = a.position.y - b.position.y;
-    return yDiff !== 0 ? yDiff : a.position.x - b.position.x;
+    return Math.abs(yDiff) < 10 ? a.position.x - b.position.x : yDiff;
   });
   
   // Simple approach: just extract text from each node

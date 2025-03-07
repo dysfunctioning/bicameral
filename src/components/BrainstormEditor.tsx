@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Toggle } from "@/components/ui/toggle";
 import { Separator } from "@/components/ui/separator";
@@ -31,41 +30,58 @@ export default function BrainstormEditor() {
     if (newMode === mode) return;
     
     if (newMode === "whiteboard") {
-      // Convert text to whiteboard nodes and edges with font styling
-      const { nodes: newNodes, edges: newEdges } = convertToWhiteboard(text, fontSize, fontFamily);
-      
-      // Debug the conversion
-      console.log("Converting to whiteboard mode:");
-      console.log("Text input:", text);
-      console.log("Generated nodes:", newNodes);
-      console.log("Generated edges:", newEdges);
-      
-      // Only set if we actually have nodes (prevents losing data)
-      if (newNodes.length > 0) {
-        setNodes(newNodes);
-        setEdges(newEdges);
-        toast.success("Whiteboard mode: node colors reflect content type!");
-      } else {
-        // If no nodes were created, show an error
+      // Ensure text is not empty
+      if (!text || text.trim() === '') {
         toast.error("No content to display in whiteboard. Please add some text first.");
         return; // Don't change mode
       }
+
+      try {
+        // Convert text to whiteboard nodes and edges with font styling
+        const result = convertToWhiteboard(text, fontSize, fontFamily);
+        
+        // Debug the conversion
+        console.log("Converting to whiteboard mode:");
+        console.log("Text input:", text);
+        console.log("Generated nodes:", result.nodes);
+        console.log("Generated edges:", result.edges);
+        
+        // Only set if we actually have nodes (prevents losing data)
+        if (result.nodes.length > 0) {
+          setNodes(result.nodes);
+          setEdges(result.edges);
+          setMode(newMode);
+          toast.success("Whiteboard mode: node colors reflect content type!");
+        } else {
+          // If no nodes were created, show an error
+          toast.error("Failed to create whiteboard content. Please try again.");
+        }
+      } catch (error) {
+        console.error("Error converting to whiteboard:", error);
+        toast.error("An error occurred while creating the whiteboard.");
+      }
     } else {
       // Convert whiteboard to text
-      const newText = convertToText(nodes, edges);
-      
-      // Debug the conversion
-      console.log("Converting to normal mode:");
-      console.log("Nodes input:", nodes);
-      console.log("Generated text:", newText);
-      
-      // Only set if we actually have text (prevents losing data)
-      if (newText.trim() !== '') {
-        setText(newText);
+      try {
+        const newText = convertToText(nodes, edges);
+        
+        // Debug the conversion
+        console.log("Converting to normal mode:");
+        console.log("Nodes input:", nodes);
+        console.log("Generated text:", newText);
+        
+        // Only set if we actually have text (prevents losing data)
+        if (newText.trim() !== '') {
+          setText(newText);
+          setMode(newMode);
+        } else {
+          toast.error("No content found in whiteboard to convert to text.");
+        }
+      } catch (error) {
+        console.error("Error converting to text:", error);
+        toast.error("An error occurred while creating the text content.");
       }
     }
-    
-    setMode(newMode);
   };
 
   const handleTextChange = (newText: string) => {

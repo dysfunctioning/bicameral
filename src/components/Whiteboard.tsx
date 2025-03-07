@@ -1,5 +1,5 @@
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -10,10 +10,14 @@ import ReactFlow, {
   NodeChange,
   EdgeChange,
   Connection,
-  Edge
+  Edge,
+  XYPosition,
+  useReactFlow,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Node } from './Node';
+import WhiteboardToolbar from './whiteboard/WhiteboardToolbar';
+import { contentColors } from '@/lib/conversionUtils';
 
 const nodeTypes = {
   custom: Node,
@@ -29,6 +33,8 @@ interface WhiteboardProps {
 export default function Whiteboard({ nodes: initialNodes, setNodes: setParentNodes, edges: initialEdges, setEdges: setParentEdges }: WhiteboardProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const reactFlowWrapper = useRef<HTMLDivElement>(null);
+  const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
 
   // Initialize with props when they change
   useEffect(() => {
@@ -65,17 +71,42 @@ export default function Whiteboard({ nodes: initialNodes, setNodes: setParentNod
 
   const onDoubleClick = (event: React.MouseEvent) => {
     // Create a new node at the click position
-    const reactFlowBounds = event.currentTarget.getBoundingClientRect();
-    const position = {
+    if (!reactFlowWrapper.current || !reactFlowInstance) return;
+    
+    const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect();
+    const position = reactFlowInstance.screenToFlowPosition({
       x: event.clientX - reactFlowBounds.left,
       y: event.clientY - reactFlowBounds.top,
+    });
+
+    addNewNode(position, 'default');
+  };
+
+  const addNewNode = (position: XYPosition, nodeType: string = 'default') => {
+    const typeToLabelMap: Record<string, string> = {
+      'idea': 'New idea',
+      'question': 'New question?',
+      'important': 'Important point!',
+      'detail': 'New detail',
+      'default': 'New thought'
+    };
+
+    const typeToColorMap: Record<string, string> = {
+      'idea': contentColors.idea,
+      'question': contentColors.question,
+      'important': contentColors.important,
+      'detail': contentColors.detail,
+      'default': contentColors.default
     };
 
     const newNode = {
-      id: `node_${nodes.length + 1}`,
+      id: `node_${Date.now()}`,
       type: 'custom',
       position,
-      data: { label: 'New thought' },
+      data: { 
+        label: typeToLabelMap[nodeType] || 'New thought',
+        color: typeToColorMap[nodeType] || contentColors.default
+      },
     };
 
     const updatedNodes = [...nodes, newNode];
@@ -83,21 +114,43 @@ export default function Whiteboard({ nodes: initialNodes, setNodes: setParentNod
     setParentNodes(updatedNodes);
   };
 
+  const handleAddNodeFromToolbar = (type: string) => {
+    if (!reactFlowInstance) return;
+    
+    // Get the center of the viewport
+    const { x, y } = reactFlowInstance.screenToFlowPosition({
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 2,
+    });
+    
+    // Add some random offset to avoid stacking
+    const position = {
+      x: x + Math.random() * 100 - 50,
+      y: y + Math.random() * 100 - 50,
+    };
+    
+    addNewNode(position, type);
+  };
+
   return (
-    <div className="h-full w-full bg-gray-50" onDoubleClick={onDoubleClick}>
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={handleNodesChange}
-        onEdgesChange={handleEdgesChange}
-        onConnect={onConnect}
-        nodeTypes={nodeTypes}
-        fitView
-      >
-        <Background />
-        <Controls />
-        <MiniMap />
-      </ReactFlow>
+    <div className="h-full w-full bg-gray-50 relative" ref={reactFlowWrapper}>
+      <WhiteboardToolbar onAddNode={handleAddNodeFromToolbar} />
+      <div className="h-full w-full" onDoubleClick={onDoubleClick}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={handleNodesChange}
+          onEdgesChange={handleEdgesChange}
+          onConnect={onConnect}
+          nodeTypes={nodeTypes}
+          onInit={setReactFlowInstance}
+          fitView
+        >
+          <Background />
+          <Controls />
+          <MiniMap />
+        </ReactFlow>
+      </div>
     </div>
   );
 }

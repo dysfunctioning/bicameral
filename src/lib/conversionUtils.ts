@@ -20,7 +20,7 @@ interface Edge {
 }
 
 // Colors based on content analysis
-const contentColors = {
+export const contentColors = {
   question: "#D946EF", // Magenta Pink for questions
   important: "#F97316", // Bright Orange for important points
   idea: "#9b87f5", // Primary Purple for ideas
@@ -29,7 +29,7 @@ const contentColors = {
 };
 
 // Function to analyze text content and infer style properties
-function analyzeContent(text: string) {
+export function analyzeContent(text: string) {
   // Safety check
   if (!text || typeof text !== 'string') {
     return { color: contentColors.default };

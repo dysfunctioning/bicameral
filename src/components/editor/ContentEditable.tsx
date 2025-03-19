@@ -5,6 +5,7 @@ import { fontSizeClasses, fontFamilyClasses } from "./editorUtils";
 interface ContentEditableProps {
   text: string;
   paragraphAlignments: Record<number, string>;
+  paragraphFontSizes?: Record<number, string>;
   fontSize: string;
   fontFamily: string;
   onChange: (text: string) => void;
@@ -15,6 +16,7 @@ interface ContentEditableProps {
 export default function ContentEditable({
   text,
   paragraphAlignments,
+  paragraphFontSizes = {},
   fontSize,
   fontFamily,
   onChange,
@@ -25,7 +27,7 @@ export default function ContentEditable({
   // Update editable content when text or alignments change
   useEffect(() => {
     updateEditableContent();
-  }, [text, paragraphAlignments]);
+  }, [text, paragraphAlignments, paragraphFontSizes]);
   
   // Split text into paragraphs for rendering
   const paragraphs = text.split('\n');
@@ -59,7 +61,12 @@ export default function ContentEditable({
       
       paragraphs.forEach((paragraph, index) => {
         const div = document.createElement('div');
+        // Apply alignment
         div.style.textAlign = paragraphAlignments[index] || 'left';
+        // Apply font size
+        const paragraphFontSize = paragraphFontSizes[index] || fontSize;
+        div.className = fontSizeClasses[paragraphFontSize as keyof typeof fontSizeClasses] || '';
+        
         div.style.minHeight = '1em';
         div.style.padding = '0.25em 0';
         
@@ -72,11 +79,26 @@ export default function ContentEditable({
         editableRef.current?.appendChild(div);
       });
     } else {
-      // If focused, just update alignments without rebuilding
+      // If focused, just update alignments and font sizes without rebuilding
       const children = editableRef.current.childNodes;
       for (let i = 0; i < children.length; i++) {
         if (children[i] instanceof HTMLElement) {
+          // Update alignment
           (children[i] as HTMLElement).style.textAlign = paragraphAlignments[i] || 'left';
+          
+          // Update font size
+          const paragraphFontSize = paragraphFontSizes[i] || fontSize;
+          const fontSizeClass = fontSizeClasses[paragraphFontSize as keyof typeof fontSizeClasses] || '';
+          
+          // Clear existing font size classes
+          Object.values(fontSizeClasses).forEach(cls => {
+            (children[i] as HTMLElement).classList.remove(cls);
+          });
+          
+          // Add new font size class
+          if (fontSizeClass) {
+            (children[i] as HTMLElement).classList.add(fontSizeClass);
+          }
         }
       }
     }
@@ -206,7 +228,7 @@ export default function ContentEditable({
   return (
     <div 
       ref={editableRef}
-      className={`flex-1 p-4 ${fontSizeClasses[fontSize as keyof typeof fontSizeClasses]} ${fontFamilyClasses[fontFamily as keyof typeof fontFamilyClasses]}`}
+      className={`flex-1 p-4 ${fontFamilyClasses[fontFamily as keyof typeof fontFamilyClasses]}`}
       style={{ 
         fontFamily: fontFamily === 'sans' ? 'sans-serif' : fontFamily === 'serif' ? 'serif' : 'monospace',
         outline: 'none',

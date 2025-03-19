@@ -27,6 +27,7 @@ export default function TextEditor({
   const [fontSize, setFontSize] = useState<string>(initialFontSize);
   const [fontFamily, setFontFamily] = useState<string>(initialFontFamily);
   const [paragraphAlignments, setParagraphAlignments] = useState<Record<number, string>>(initialParagraphAlignments);
+  const [paragraphFontSizes, setParagraphFontSizes] = useState<Record<number, string>>({});
   const [currentParagraphIndex, setCurrentParagraphIndex] = useState<number>(0);
   const editableRef = useRef<HTMLDivElement>(null);
   
@@ -51,6 +52,11 @@ export default function TextEditor({
   
   const handleFontSizeChange = (size: string) => {
     setFontSize(size);
+    // Also update the current paragraph's font size
+    setParagraphFontSizes(prev => ({
+      ...prev,
+      [currentParagraphIndex]: size
+    }));
   };
   
   const handleFontFamilyChange = (font: string) => {
@@ -73,10 +79,15 @@ export default function TextEditor({
     return paragraphAlignments[currentParagraphIndex] || 'left';
   };
   
+  // Get current font size for the toolbar
+  const getCurrentFontSize = () => {
+    return paragraphFontSizes[currentParagraphIndex] || fontSize;
+  };
+  
   return (
     <div className="h-full flex flex-col bg-white">
       <EditorToolbar 
-        fontSize={fontSize}
+        fontSize={getCurrentFontSize()}
         fontFamily={fontFamily}
         currentAlignment={getCurrentAlignment()}
         onFontSizeChange={handleFontSizeChange}
@@ -88,6 +99,7 @@ export default function TextEditor({
         <ContentEditable
           text={text}
           paragraphAlignments={paragraphAlignments}
+          paragraphFontSizes={paragraphFontSizes}
           fontSize={fontSize}
           fontFamily={fontFamily}
           onChange={handleChange}
@@ -98,6 +110,7 @@ export default function TextEditor({
         <TextPreview 
           text={text}
           paragraphAlignments={paragraphAlignments}
+          paragraphFontSizes={paragraphFontSizes}
           fontSizeClass={fontSizeClasses[fontSize as keyof typeof fontSizeClasses]}
           fontFamilyClass={fontFamilyClasses[fontFamily as keyof typeof fontFamilyClasses]}
         />

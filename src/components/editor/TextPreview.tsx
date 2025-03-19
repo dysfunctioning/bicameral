@@ -1,33 +1,45 @@
 
+import { fontSizeClasses } from "./editorUtils";
+
 interface TextPreviewProps {
   text: string;
   paragraphAlignments: Record<number, string>;
+  paragraphFontSizes?: Record<number, string>;
   fontSizeClass: string;
   fontFamilyClass: string;
 }
 
 export default function TextPreview({ 
   text, 
-  paragraphAlignments, 
+  paragraphAlignments,
+  paragraphFontSizes = {},
   fontSizeClass, 
   fontFamilyClass 
 }: TextPreviewProps) {
-  if (!text) return null;
-  
+  const paragraphs = text.split('\n');
+
   return (
-    <div className="mt-4 p-2 border rounded-md">
-      <h3 className="text-sm font-semibold mb-2">Preview:</h3>
-      <div className={`${fontSizeClass} ${fontFamilyClass}`}>
-        {text.split('\n').map((paragraph, index) => {
-          const alignment = paragraphAlignments[index] || 'left';
+    <div className={`flex-1 p-4 bg-gray-50 border-l overflow-auto ${fontFamilyClass}`}>
+      <h3 className="text-sm font-semibold text-gray-500 mb-2">Preview</h3>
+      <div className="prose prose-sm max-w-none">
+        {paragraphs.map((paragraph, index) => {
+          // Get font size for this paragraph, or use the default
+          const paragraphFontSize = paragraphFontSizes[index] || 
+            fontSizeClass.replace('text-', '') as keyof typeof fontSizeClasses;
+          
+          const paragraphFontSizeClass = fontSizeClasses[paragraphFontSize as keyof typeof fontSizeClasses] || fontSizeClass;
+          
           return (
-            <div 
-              key={index} 
-              className={`mb-2`}
-              style={{ textAlign: alignment as any }}
+            <p
+              key={index}
+              className={paragraphFontSizeClass}
+              style={{ 
+                textAlign: paragraphAlignments[index] || 'left',
+                marginBottom: '0.5em'
+              }}
             >
               {paragraph || <br />}
-            </div>
+            </p>
           );
         })}
       </div>

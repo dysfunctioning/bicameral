@@ -33,9 +33,12 @@ export const updateEditableContent = ({
       const div = document.createElement('div');
       // Apply alignment
       div.style.textAlign = paragraphAlignments[index] || 'left';
-      // Apply font size
+      // Apply font size - use paragraph-specific font size or fall back to default
       const paragraphFontSize = paragraphFontSizes[index] || fontSize;
-      div.className = fontSizeClasses[paragraphFontSize as keyof typeof fontSizeClasses] || '';
+      const fontSizeClass = fontSizeClasses[paragraphFontSize as keyof typeof fontSizeClasses] || '';
+      if (fontSizeClass) {
+        div.className = fontSizeClass;
+      }
       
       div.style.minHeight = '1em';
       div.style.padding = '0.25em 0';
@@ -53,8 +56,9 @@ export const updateEditableContent = ({
     const children = editableRef.current.childNodes;
     for (let i = 0; i < children.length; i++) {
       if (children[i] instanceof HTMLElement) {
+        const element = children[i] as HTMLElement;
         // Update alignment
-        (children[i] as HTMLElement).style.textAlign = paragraphAlignments[i] || 'left';
+        element.style.textAlign = paragraphAlignments[i] || 'left';
         
         // Update font size
         const paragraphFontSize = paragraphFontSizes[i] || fontSize;
@@ -62,12 +66,12 @@ export const updateEditableContent = ({
         
         // Clear existing font size classes
         Object.values(fontSizeClasses).forEach(cls => {
-          (children[i] as HTMLElement).classList.remove(cls);
+          element.classList.remove(cls);
         });
         
         // Add new font size class
         if (fontSizeClass) {
-          (children[i] as HTMLElement).classList.add(fontSizeClass);
+          element.classList.add(fontSizeClass);
         }
       }
     }

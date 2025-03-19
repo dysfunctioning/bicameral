@@ -7,7 +7,7 @@ import { saveSelection, findCurrentParagraphIndex } from "./selectionUtils";
 interface ContentEditableProps {
   text: string;
   paragraphAlignments: Record<number, string>;
-  paragraphFontSizes?: Record<number, string>;
+  paragraphFontSizes: Record<number, string>;
   fontSize: string;
   fontFamily: string;
   onChange: (text: string) => void;
@@ -18,7 +18,7 @@ interface ContentEditableProps {
 export default function ContentEditable({
   text,
   paragraphAlignments,
-  paragraphFontSizes = {},
+  paragraphFontSizes,
   fontSize,
   fontFamily,
   onChange,
@@ -26,7 +26,7 @@ export default function ContentEditable({
   editableRef
 }: ContentEditableProps) {
   
-  // Update editable content when text or alignments change
+  // Update editable content when text, alignments, or font sizes change
   useEffect(() => {
     // Save selection state if possible
     const selection = window.getSelection();

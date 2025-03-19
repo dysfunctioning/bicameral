@@ -20,8 +20,11 @@ const EditableParagraph = ({
   // Apply alignment
   div.style.textAlign = alignment || 'left';
   
-  // Apply font size
-  div.className = fontSizeClasses[fontSize as keyof typeof fontSizeClasses] || '';
+  // Apply font size from the paragraph-specific fontSize prop
+  const fontSizeClass = fontSizeClasses[fontSize as keyof typeof fontSizeClasses] || '';
+  if (fontSizeClass) {
+    div.className = fontSizeClass;
+  }
   
   div.style.minHeight = '1em';
   div.style.padding = '0.25em 0';

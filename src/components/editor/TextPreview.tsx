@@ -7,7 +7,7 @@ type TextAlign = 'left' | 'center' | 'right' | 'justify';
 interface TextPreviewProps {
   text: string;
   paragraphAlignments: Record<number, string>;
-  paragraphFontSizes?: Record<number, string>;
+  paragraphFontSizes: Record<number, string>;
   fontSizeClass: string;
   fontFamilyClass: string;
 }
@@ -15,7 +15,7 @@ interface TextPreviewProps {
 export default function TextPreview({ 
   text, 
   paragraphAlignments,
-  paragraphFontSizes = {},
+  paragraphFontSizes, 
   fontSizeClass, 
   fontFamilyClass 
 }: TextPreviewProps) {
@@ -28,7 +28,7 @@ export default function TextPreview({
         {paragraphs.map((paragraph, index) => {
           // Get font size for this paragraph, or use the default
           const paragraphFontSize = paragraphFontSizes[index] || 
-            fontSizeClass.replace('text-', '') as keyof typeof fontSizeClasses;
+                                  fontSizeClass.replace('text-', '');
           
           const paragraphFontSizeClass = fontSizeClasses[paragraphFontSize as keyof typeof fontSizeClasses] || fontSizeClass;
           

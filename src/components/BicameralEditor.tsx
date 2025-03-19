@@ -4,11 +4,11 @@ import { toast } from "sonner";
 import TextEditor from "@/components/TextEditor";
 import Whiteboard from "@/components/Whiteboard";
 import ChangeTrackingPane from "@/components/ChangeTrackingPane";
-import ModeToggle from "@/components/brainstorm/ModeToggle";
+import ModeToggle from "@/components/bicameral/ModeToggle";
 import { useModeHandler } from "@/hooks/useModeHandler";
 import { useChangeTracker } from "@/hooks/useChangeTracker";
 
-export default function BrainstormEditor() {
+export default function BicameralEditor() {
   const [text, setText] = useState("");
   const [fontSize, setFontSize] = useState<string>("medium");
   const [fontFamily, setFontFamily] = useState<string>("sans");
@@ -89,7 +89,7 @@ export default function BrainstormEditor() {
   return (
     <div className="h-full flex flex-col gap-4">
       <div className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
-        <h1 className="text-xl font-bold">Brainstorm Editor</h1>
+        <h1 className="text-xl font-bold">Bicameral Editor</h1>
         <ModeToggle
           mode={mode}
           onModeChange={onModeChange}

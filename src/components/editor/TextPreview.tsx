@@ -1,6 +1,9 @@
 
 import { fontSizeClasses } from "./editorUtils";
 
+// Define TextAlign type to match CSS text-align property
+type TextAlign = 'left' | 'center' | 'right' | 'justify';
+
 interface TextPreviewProps {
   text: string;
   paragraphAlignments: Record<number, string>;
@@ -29,12 +32,16 @@ export default function TextPreview({
           
           const paragraphFontSizeClass = fontSizeClasses[paragraphFontSize as keyof typeof fontSizeClasses] || fontSizeClass;
           
+          // Convert the alignment to a proper TextAlign type
+          const alignment = paragraphAlignments[index] || 'left';
+          const textAlign = (alignment as TextAlign);
+          
           return (
             <p
               key={index}
               className={paragraphFontSizeClass}
               style={{ 
-                textAlign: paragraphAlignments[index] || 'left',
+                textAlign: textAlign,
                 marginBottom: '0.5em'
               }}
             >

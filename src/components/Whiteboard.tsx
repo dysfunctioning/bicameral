@@ -101,13 +101,21 @@ export default function Whiteboard({ nodes: initialNodes, setNodes: setParentNod
       'default': contentColors.default
     };
 
+    // Calculate the next index for original paragraph ordering
+    const maxIndex = Math.max(...nodes.map(node => 
+      node.data.originalIndex !== undefined ? node.data.originalIndex : -1
+    ), -1);
+    
+    const newIndex = maxIndex + 1;
+
     const newNode = {
       id: `node_${Date.now()}`,
       type: 'custom',
       position,
       data: { 
         label: typeToLabelMap[nodeType] || 'New thought',
-        color: typeToColorMap[nodeType] || contentColors.default
+        color: typeToColorMap[nodeType] || contentColors.default,
+        originalIndex: newIndex // Assign a new index to maintain order
       },
     };
 

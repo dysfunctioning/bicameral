@@ -10,6 +10,7 @@ interface Node {
     color?: string;
     fontSize?: string;
     fontFamily?: string;
+    originalIndex?: number; // Add index to track original paragraph position
   };
 }
 
@@ -89,8 +90,8 @@ export function convertToWhiteboard(text: string, fontSize?: string, fontFamily?
 
   // Split into paragraphs and filter out empty lines
   const lines = text.split('\n')
-    .map(line => line.trim())
-    .filter(line => line !== '');
+    .map((line, index) => ({ text: line.trim(), index }))
+    .filter(line => line.text !== '');
   
   // If there are no non-empty lines, return empty arrays
   if (lines.length === 0) {
@@ -107,32 +108,34 @@ export function convertToWhiteboard(text: string, fontSize?: string, fontFamily?
   
   if (lines.length === 1) {
     // Single node centered
-    const contentStyle = analyzeContent(lines[0]);
+    const contentStyle = analyzeContent(lines[0].text);
     nodes.push({
       id: 'node_1',
       type: 'custom',
       position: { x: centerX - 100, y: centerY },
       data: { 
-        label: lines[0],
+        label: lines[0].text,
         color: contentStyle.color,
         fontSize: fontSize || 'medium',
-        fontFamily: fontFamily || 'sans-serif'
+        fontFamily: fontFamily || 'sans-serif',
+        originalIndex: lines[0].index // Store original paragraph index
       }
     });
   } else if (lines.length === 2) {
     // Two nodes side by side
-    const firstStyle = analyzeContent(lines[0]);
-    const secondStyle = analyzeContent(lines[1]);
+    const firstStyle = analyzeContent(lines[0].text);
+    const secondStyle = analyzeContent(lines[1].text);
     
     nodes.push({
       id: 'node_1',
       type: 'custom',
       position: { x: centerX - 150, y: centerY },
       data: { 
-        label: lines[0],
+        label: lines[0].text,
         color: firstStyle.color,
         fontSize: fontSize || 'medium',
-        fontFamily: fontFamily || 'sans-serif'
+        fontFamily: fontFamily || 'sans-serif',
+        originalIndex: lines[0].index // Store original paragraph index
       }
     });
     
@@ -141,10 +144,11 @@ export function convertToWhiteboard(text: string, fontSize?: string, fontFamily?
       type: 'custom',
       position: { x: centerX + 150, y: centerY },
       data: { 
-        label: lines[1],
+        label: lines[1].text,
         color: secondStyle.color,
         fontSize: fontSize || 'medium',
-        fontFamily: fontFamily || 'sans-serif'
+        fontFamily: fontFamily || 'sans-serif',
+        originalIndex: lines[1].index // Store original paragraph index
       }
     });
     
@@ -163,7 +167,7 @@ export function convertToWhiteboard(text: string, fontSize?: string, fontFamily?
       const x = centerX + radius * Math.cos(angle);
       const y = centerY + radius * Math.sin(angle);
       
-      const contentStyle = analyzeContent(line);
+      const contentStyle = analyzeContent(line.text);
       const nodeId = `node_${index + 1}`;
       
       nodes.push({
@@ -171,10 +175,11 @@ export function convertToWhiteboard(text: string, fontSize?: string, fontFamily?
         type: 'custom',
         position: { x, y },
         data: { 
-          label: line,
+          label: line.text,
           color: contentStyle.color,
           fontSize: fontSize || 'medium',
-          fontFamily: fontFamily || 'sans-serif'
+          fontFamily: fontFamily || 'sans-serif',
+          originalIndex: line.index // Store original paragraph index
         }
       });
       
@@ -208,14 +213,19 @@ export function convertToText(nodes: Node[], edges: Edge[]): string {
     return '';
   }
   
-  // Sort nodes by their position to maintain original order
+  // Sort nodes by their originalIndex if available to maintain original paragraph order
   const sortedNodes = [...nodes].sort((a, b) => {
-    // First sort by Y position, then by X if Y is very close
+    // If both nodes have originalIndex, use that for ordering
+    if (a.data.originalIndex !== undefined && b.data.originalIndex !== undefined) {
+      return a.data.originalIndex - b.data.originalIndex;
+    }
+    
+    // Fall back to position-based sorting if originalIndex isn't available
     const yDiff = a.position.y - b.position.y;
     return Math.abs(yDiff) < 10 ? a.position.x - b.position.x : yDiff;
   });
   
-  // Simple approach: just extract text from each node
+  // Extract text from each node
   return sortedNodes
     .map(node => (node.data && node.data.label) ? node.data.label : '')
     .filter(label => label.trim() !== '')
